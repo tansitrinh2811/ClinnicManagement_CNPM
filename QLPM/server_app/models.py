@@ -93,3 +93,78 @@ class QuanTriVien(db.Model):
 
     def __str__(self):
         return self.nguoiDung.hoTen
+
+
+class PhieuDangKy(BaseModel):
+    __tablename__ = 'phieu_dang_ky'
+    ngayKham = Column(DateTime, nullable=False, default=datetime.now)
+
+    benhNhan_id = Column(Integer, ForeignKey('benh_nhan.id'), nullable=False)
+    yTa_id = Column(Integer, ForeignKey('y_ta.id'))
+
+
+class PhieuKham(BaseModel):
+    __tablename__ = 'phieu_kham'
+    ngayKham = Column(DateTime, nullable=False)
+    trieuChung = Column(String(100))
+    duDoan = Column(String(100))
+
+    bacSi_id = Column(Integer, ForeignKey('bac_si.id'), nullable=False)
+    benhNhan_id = Column(Integer, ForeignKey("benh_nhan.id"))
+    benhNhan = relationship("BenhNhan", back_populates="phieuKham")
+    hoaDon = relationship("HoaDon", uselist=False, back_populates="phieuKham")
+    thuoc = relationship("ToaThuoc", backref="phieuKham")
+
+
+class HoaDon(BaseModel):
+    __tablename__ = 'hoa_don'
+    tienKham = Column(Float, default=100000)
+    tienThuoc = Column(Float, nullable=False)
+    tongTien = Column(Float, nullable=False)
+    ngayLap = Column(DateTime, nullable=False)
+
+    thuNgan_id = Column(Integer, ForeignKey('thu_ngan.id'), nullable=False)
+    phieuKham_id = Column(Integer, ForeignKey("phieu_kham.id"))
+    phieuKham = relationship("PhieuKham", back_populates="hoaDon")
+
+
+class Thuoc(BaseModel):
+    __tablename__ = 'thuoc'
+    tenThuoc = Column(String(50), nullable=False)
+    ngaySX = Column(DateTime, nullable=False)
+    hanSD = Column(DateTime, nullable=False)
+    donGia = Column(Float, nullable=False)
+
+    phieuKham = relationship("ToaThuoc", backref="thuoc")
+    donViThuoc_id = Column(Integer, ForeignKey('don_vi_thuoc.id'), nullable=True, default=1)
+
+    def __str__(self):
+        return self.tenThuoc
+
+
+class ToaThuoc(db.Model):
+    __tablename__ = 'toa_thuoc'
+    lieuLuong = Column(String(50), nullable=False)
+    soLuong = Column(Integer, nullable=False)
+    cachDung = Column(String(50))
+
+    phieuKham_id = Column(ForeignKey('phieu_kham.id'), primary_key=True)
+    thuoc_id = Column(ForeignKey('thuoc.id'), primary_key=True)
+
+
+class DonViThuoc(BaseModel):
+    __tablename__ = 'don_vi_thuoc'
+    donVi = Column(String(50))
+
+    thuoc = relationship('Thuoc', backref='donViThuoc', lazy=True)
+
+    def __str__(self):
+        return self.donVi
+
+
+# trong models
+class QuyDinh(BaseModel):
+    __tablename__ = 'quy_dinh'
+    tenQuyDinh = Column(String(50), nullable=False)
+    moTa = Column(String(100))
+    quanTriVien_id = Column(Integer, ForeignKey('quan_tri_vien.id'), nullable=True)
